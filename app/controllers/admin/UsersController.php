@@ -1085,7 +1085,7 @@ class UsersController extends AdminController {
      */
     public function postLDAP() {
 
-        $location_id = Input::get('location_id');
+        //$location_id = Input::get('location_id');
 
         $formValidator = Validator::make(Input::all(), $this->ldapFormInputValidationRules);
         // If validation fails, we'll exit the operation now.
@@ -1107,7 +1107,9 @@ class UsersController extends AdminController {
         $ldap_result_first_name = Config::get('ldap.result.first.name');
         $ldap_result_email = Config::get('ldap.result.email');
         $ldap_result_active_flag = Config::get('ldap.result.active.flag');
+        $ldap_result_location = Config::get('ldap.result.location');
 
+        $onlyAttributes = array($ldap_result_username, $ldap_result_emp_num, $ldap_result_last_name, $ldap_result_first_name, $ldap_result_email, $ldap_result_active_flag, $ldap_result_location);
 
         // Connect to LDAP server
         $ldapconn = @ldap_connect($url);
@@ -1132,7 +1134,7 @@ class UsersController extends AdminController {
         }
 
         // Perform the search
-        $search_results = @ldap_search($ldapconn, $base_dn, '('.$filter.')');
+        $search_results = @ldap_search($ldapconn, $base_dn, '('.$filter.')', $onlyAttributes);
         if (!$search_results) {
             return Redirect::route('users')->with('error', Lang::get('admin/users/message.error.ldap_could_not_search').ldap_error($ldapconn));
         }
@@ -1153,6 +1155,7 @@ class UsersController extends AdminController {
                 $item["lastname"] = isset( $results[$i][$ldap_result_last_name][0] ) ? $results[$i][$ldap_result_last_name][0] : "";
                 $item["firstname"] = isset( $results[$i][$ldap_result_first_name][0] ) ? $results[$i][$ldap_result_first_name][0] : "";
                 $item["email"] = isset( $results[$i][$ldap_result_email][0] ) ? $results[$i][$ldap_result_email][0] : "" ;
+                $item["location"] = isset( $results[$i][$ldap_result_location][0] ) ? $results[$i][$ldap_result_email][0] : "" ;
 
                 $user = DB::table('users')->where('username', $item["username"])->first();
                 if ($user) {
@@ -1176,6 +1179,9 @@ class UsersController extends AdminController {
 
                         // Create the user if they don't exist.
                         $pass = substr(str_shuffle("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"), 0, 10);
+
+                        $location_id = DB::table('locations')->where('name', $item["location"])->value('id');
+                        //TODO default location
 
                         $newuser = array(
                             'first_name' => $item["firstname"],

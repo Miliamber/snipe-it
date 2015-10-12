@@ -86,6 +86,7 @@ return array(
     'result.active.flag' => "",
     'result.emp.num'  => "",
     'result.email' => "",
+    'result.location' => "",
 
     /*
     |--------------------------------------------------------------------------
